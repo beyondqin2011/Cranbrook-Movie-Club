@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CK Movie Club | Launching December 2025</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #0f172a;
+            --secondary: #fbbf24;
+            --accent: #dc2626;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray: #64748b;
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* 管理员访问按钮 */
+        .admin-access-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--gray);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .admin-access-btn:hover {
+            opacity: 1;
+        }
+
+        /* 管理员登录模态框 */
+        .admin-login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1003;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .admin-login-modal.show {
+            display: flex;
+        }
+
+        .login-content {
+            background: var(--dark);
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .login-form input {
+            padding: 0.8rem;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .login-error {
+            color: #ef4444;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* 管理员面板 */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1001;
+            background: var(--dark);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid var(--secondary);
+            max-width: 300px;
+        }
+
+        .admin-panel.show {
+            display: block;
+        }
+
+        .admin-toggle {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+
+        .admin-content {
+            display: none;
+        }
+
+        .admin-content.show {
+            display: block;
+        }
+
+        .admin-stats {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .admin-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .admin-btn {
+            background: var(--secondary);
+            color: var(--primary);
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* 数据模态框 */
+        .data-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1002;
+            overflow-y: auto;
+        }
+
+        .data-modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: var(--dark);
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .submissions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .submissions-table th, .submissions-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .submissions-table th {
+            background: rgba(251, 191, 36, 0.2);
+            color: var(--secondary);
+        }
+
+        /* 加载和成功消息 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            color: var(--secondary);
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .success-message {
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid var(--secondary);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        /* 倒计时样式 */
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .countdown-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 80px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .countdown-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary);
+            display: block;
+        }
+
+        .countdown-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--light);
+        }
+
+        .launched-message {
+            background: linear-gradient(135deg, var(--secondary), #d97706);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 2rem 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* 戈达尔名言部分 */
+        .godard-quote {
+            background: linear-gradient(135deg, var(--dark), #1e293b);
+            padding: 4rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(251, 191, 36, 0.3);
+            border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .quote-content {
+            max-width: 800px;
+            margin: 0 auto;
+            font-style: italic;
+            position: relative;
+        }
+
+        .quote-content h3 {
+            font-size: 1.8rem;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        .quote-content p {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            line-height: 1.8;
+        }
+
+        .quote-author {
+            margin-top: 2rem;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        /* 启动横幅 */
+        .launch-banner {
+            background: linear-gradient(135deg, var(--accent), #b91c1c);
+            padding: 1rem;
+            text-align: center;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .launch-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* 英雄区域 */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), 
+                        url('https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #e2e8f0;
+        }
+
+        /* 即将推出部分 */
+        .coming-soon {
+            padding: 5rem 0;
+            text-align: center;
+            background-color: var(--dark);
+        }
+
+        .coming-soon h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--secondary);
+        }
+
+        .coming-soon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .coming-soon-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .coming-soon-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .coming-soon-item i {
+            font-size: 3rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* 关于我们部分 */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-text h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+            color: #cbd5e1;
+        }
+
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: transform 0.3s;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .stat:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat i {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat h4 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat p {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        /* 新闻通讯部分 */
+        .newsletter {
+            background: var(--dark);
+            padding: 5rem 0;
+            text-align: center;
+        }
+
+        .newsletter-form {
+            max-width: 500px;
+            margin: 2rem auto 0;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        /* 活动部分 */
+        .activities {
+            background-color: var(--dark);
+        }
+
+        .activity-categories {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: var(--light);
+            padding: 0.7rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active, .category-btn:hover {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+
+        .activity-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-img {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        .card-content p {
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            background: rgba(251, 191, 36, 0.2);
+            color: var(--secondary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* 趣味活动部分 */
+        .fun-activities {
+            padding: 5rem 0;
+            background: var(--primary);
+        }
+
+        .fun-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .fun-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s;
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .fun-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .fun-icon {
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+
+        .fun-item h3 {
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* 导航栏 */
+        header {
+            background-color: rgba(15, 23, 42, 0.95);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--secondary);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            background-color: #b91c1c;
+            transform: translateY(-2px);
+        }
+
+        section {
+            padding: 5rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--secondary);
+            display: inline-block;
+        }
+
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--secondary);
+        }
+
+        /* 加入我们部分 */
+        .join {
+            background-color: var(--dark);
+            text-align: center;
+        }
+
+        .join-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .join-content p {
+            margin-bottom: 2rem;
+            color: #cbd5e1;
+        }
+
+        .join-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            text-align: left;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        /* 页脚 */
+        footer {
+            background-color: #0a0f1c;
+            padding: 3rem 0 1.5rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-column h3 {
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: var(--light);
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background-color: var(--secondary);
+            color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .about-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .join-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .newsletter-form {
+                flex-direction: column;
+            }
+            
+            .countdown {
+                flex-wrap: wrap;
+            }
+            
+            .admin-panel {
+                position: static;
+                max-width: 100%;
+                margin: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 管理员访问按钮 -->
+    <button class="admin-access-btn" onclick="showAdminLogin()">
+        <i class="fas fa-lock"></i> Admin Access
+    </button>
+
+    <!-- 管理员登录模态框 -->
+    <div class="admin-login-modal" id="adminLoginModal">
+        <div class="login-content">
+            <h2><i class="fas fa-shield-alt"></i> Admin Login</h2>
+            <p>Enter admin credentials to access data</p>
+            <form class="login-form" id="adminLoginForm">
+                <input type="password" id="adminPassword" placeholder="Admin Password" required>
+                <button type="submit" class="cta-button">Login</button>
+                <div class="login-error" id="loginError">
+                    <i class="fas fa-exclamation-triangle"></i> Invalid password
+                </div>
+            </form>
+            <button class="admin-btn" onclick="closeAdminLogin()" style="margin-top: 1rem; background: var(--gray);">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- 管理员面板 -->
+    <div class="admin-panel" id="adminPanel">
+        <button class="admin-toggle" onclick="toggleAdminPanel()">
+            <i class="fas fa-cog"></i> Admin Panel
+        </button>
+        <div class="admin-content" id="adminContent">
+            <div class="admin-stats">
+                <h4>Data Statistics</h4>
+                <p>Total Submissions: <span id="totalSubmissions">0</span></p>
+                <p>Last Update: <span id="lastUpdate">-</span></p>
+                <p>Data Location: Browser Local Storage</p>
+            </div>
+            <div class="admin-actions">
+                <button class="admin-btn" onclick="viewSubmissions()">
+                    <i class="fas fa-eye"></i> View All Data
+                </button>
+                <button class="admin-btn" onclick="exportData()">
+                    <i class="fas fa-download"></i> Export Data
+                </button>
+                <button class="admin-btn" onclick="clearLocalData()">
+                    <i class="fas fa-trash"></i> Clear Data
+                </button>
+                <button class="admin-btn" onclick="logoutAdmin()" style="background: var(--gray);">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据模态框 -->
+    <div class="data-modal" id="dataModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h2>Club Member Submissions</h2>
+            <div id="modalContent">
+                <!-- 数据将在这里加载 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 启动横幅 -->
+    <div class="launch-banner">
+        <p>🎬 CK Movie Club Launching December 2025 - Join the excitement! 🎥</p>
+    </div>
+
+    <!-- 导航栏 -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-film"></i>
+                    <span>CK Movie Club</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#home">Home</a>
+                    <a href="#about">About</a>
+                    <a href="#activities">Activities</a>
+                    <a href="#fun">Fun Activities</a>
+                    <a href="#join">Join Us</a>
+                </div>
+                <button class="cta-button">Get Updates</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Where Stories Come to Life</h1>
+                <p>A new movie club launching December 2025. Join us on an exciting journey through the world of cinema - from watching classics to creating our own masterpieces.</p>
+                
+                <!-- 倒计时器 -->
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="days">00</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="hours">00</span>
+                        <span class="countdown-label">Hours</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="minutes">00</span>
+                        <span class="countdown-label">Minutes</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-number" id="seconds">00</span>
+                        <span class="countdown-label">Seconds</span>
+                    </div>
+                </div>
+                
+                <!-- 启动消息 -->
+                <div class="launched-message" id="launchedMessage" style="display: none;">
+                    <h2>🎉 We're Live! 🎉</h2>
+                    <p>The CK Movie Club has officially launched! Join us now and become part of our film community.</p>
+                    <button class="cta-button">Join Now</button>
+                </div>
+                
+                <button class="cta-button" id="preLaunchBtn">Be the First to Know</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 戈达尔名言部分 -->
+    <section class="godard-quote">
+        <div class="container">
+            <div class="quote-content">
+                <h3>"A film is not a document, it's a dream."</h3>
+                <p>Cinema is not just about telling stories; it's about creating experiences that transport us to different worlds, challenge our perspectives, and connect us through shared emotions and dreams.</p>
+                <div class="quote-author">- Jean-Luc Godard</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 即将推出部分 -->
+    <section class="coming-soon">
+        <div class="container">
+            <div class="section-title">
+                <h2>What's Coming</h2>
+            </div>
+            <p>We're building an exciting movie community with diverse activities for all film enthusiasts.</p>
+            
+            <div class="coming-soon-grid">
+                <div class="coming-soon-item">
+                    <i class="fas fa-film"></i>
+                    <h3>Weekly Screenings</h3>
+                    <p>Join us for curated movie nights featuring classics, indie films, and member favorites.</p>
+                </div>
+                <div class="coming-soon-item">
+                    <i class="fas fa-video"></i>
+                    <h3>Filmmaking Workshops</h3>
+                    <p>Learn scriptwriting, shooting techniques, and editing from industry professionals.</p>
+                </div>
+                <div class="coming-soon-item">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Film Challenges</h3>
+                    <p>Test your creativity with timed filmmaking competitions and collaborative projects.</p>
+                </div>
+                <div class="coming-soon-item">
+                    <i class="fas fa-users"></i>
+                    <h3>Community Events</h3>
+                    <p>Connect with fellow film lovers through discussions, festivals, and social gatherings.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于我们部分 -->
+    <section id="about">
+        <div class="container">
+            <div class="section-title">
+                <h2>About CK Movie Club</h2>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Our Vision for Film</h3>
+                    <p>CK Movie Club is a new community for movie enthusiasts launching in December 2025. We believe film is more than entertainment - it's a powerful art form that connects people across cultures and experiences.</p>
+                    <p>Our mission is to create a space where students can explore, appreciate, and create films together. Whether you're an aspiring filmmaker or simply love watching movies, you'll find your place here.</p>
+                    <p>We're currently in the planning stages, building partnerships and designing our first season of activities. Join our mailing list to stay updated as we prepare for our grand opening!</p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat">
+                        <i class="fas fa-calendar-plus"></i>
+                        <h4>Dec 2025</h4>
+                        <p>Launch Date</p>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-bullseye"></i>
+                        <h4>4</h4>
+                        <p>Core Activities</p>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-handshake"></i>
+                        <h4>Open</h4>
+                        <p>To All Students</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 活动部分 -->
+    <section class="activities" id="activities">
+        <div class="container">
+            <div class="section-title">
+                <h2>Core Activities</h2>
+            </div>
+            
+            <div class="activity-categories">
+                <button class="category-btn active" data-category="all">All Activities</button>
+                <button class="category-btn" data-category="screening">Film Screening</button>
+                <button class="category-btn" data-category="production">Film Production</button>
+                <button class="category-btn" data-category="studies">Film Studies</button>
+                <button class="category-btn" data-category="community">Community</button>
+            </div>
+            
+            <div class="activity-cards">
+                <div class="card" data-category="screening">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1489599809505-fc6acc43c71f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                    <div class="card-content">
+                        <h3>Weekly Film Screenings</h3>
+                        <p>Join us every Friday for curated movie nights featuring everything from timeless classics to contemporary independent cinema, followed by lively discussions.</p>
+                        <div class="card-tags">
+                            <span class="tag">Friday Nights</span>
+                            <span class="tag">Themed Evenings</span>
+                            <span class="tag">Group Discussions</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" data-category="production">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                    <div class="card-content">
+                        <h3>Filmmaking Workshops</h3>
+                        <p>Learn practical skills in scriptwriting, cinematography, editing, and sound design through hands-on workshops led by experienced filmmakers.</p>
+                        <div class="card-tags">
+                            <span class="tag">Monthly Sessions</span>
+                            <span class="tag">Hands-on Learning</span>
+                            <span class="tag">All Skill Levels</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" data-category="production">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                    <div class="card-content">
+                        <h3>48-Hour Film Challenge</h3>
+                        <p>Put your skills to the test in our exciting film challenges where teams have just 48 hours to create a short film based on a surprise theme.</p>
+                        <div class="card-tags">
+                            <span class="tag">Team Competition</span>
+                            <span class="tag">Creative Challenge</span>
+                            <span class="tag">Premiere Screening</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" data-category="studies">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                    <div class="card-content">
+                        <h3>Director Studies</h3>
+                        <p>Dive deep into the works of iconic directors like Nolan, Wes Anderson, and Greta Gerwig. Analyze their unique styles and storytelling techniques.</p>
+                        <div class="card-tags">
+                            <span class="tag">Bi-Weekly</span>
+                            <span class="tag">In-Depth Analysis</span>
+                            <span class="tag">Film History</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" data-category="community">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                    <div class="card-content">
+                        <h3>Film Festival Trips</h3>
+                        <p>Organized trips to local and regional film festivals. Experience the excitement of festival premieres and meet fellow film enthusiasts.</p>
+                        <div class="card-tags">
+                            <span class="tag">Seasonal</span>
+                            <span class="tag">Field Trips</span>
+                            <span class="tag">Networking</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" data-category="screening">
+                    <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1574267432553-4b4628081c31?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');"></div>
+                    <div class="card-content">
+                        <h3>Themed Film Weeks</h3>
+                        <p>Special focus weeks on specific genres, eras, or cultural cinema. Explore film history through curated screenings and discussions.</p>
+                        <div class="card-tags">
+                            <span class="tag">Monthly Themes</span>
+                            <span class="tag">Cultural Exploration</span>
+                            <span class="tag">Educational</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 趣味活动部分 -->
+    <section class="fun-activities" id="fun">
+        <div class="container">
+            <div class="section-title">
+                <h2>Fun & Creative Activities</h2>
+            </div>
+            <p class="section-subtitle" style="text-align: center; margin-bottom: 3rem; color: #cbd5e1; max-width: 800px; margin-left: auto; margin-right: auto;">
+                Our club isn't just about serious film study - we believe in having fun with cinema! Check out these lighthearted activities that make our club special.
+            </p>
+            
+            <div class="fun-grid">
+                <div class="fun-item">
+                    <div class="fun-icon">🎭</div>
+                    <h3>Mystery Movie Night</h3>
+                    <p>Guess the film from cryptic clues before the screening. The most creative guesses win prizes!</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">👗</div>
+                    <h3>Costume Screening Day</h3>
+                    <p>Dress as your favorite character for themed movie nights. Best costume wins recognition!</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">😂</div>
+                    <h3>Bad Movie Night</h3>
+                    <p>Enjoy hilariously bad films with friends. The cheesier, the better! Group commentary encouraged.</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">🎙️</div>
+                    <h3>Dubbing Challenge</h3>
+                    <p>Re-dub famous scenes with your own creative dialogue. Hilarious results guaranteed!</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">⏱️</div>
+                    <h3>1-Minute Review Battle</h3>
+                    <p>Summarize a film in just 60 seconds. Fast-paced, fun, and great for developing quick thinking.</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">📱</div>
+                    <h3>Phone Film Festival</h3>
+                    <p>Create compelling short films using only your smartphone. Low-tech, high-creativity challenge.</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">🖼️</div>
+                    <h3>Poster Recreation</h3>
+                    <p>Recreate iconic movie posters with your own photos. Creative interpretation encouraged!</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">🎬</div>
+                    <h3>Improv Scene Recreation</h3>
+                    <p>Act out famous movie scenes with your own creative twists. No acting experience required!</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">🧠</div>
+                    <h3>Movie Trivia Night</h3>
+                    <p>Test your film knowledge in team competitions. Prizes for the most cine-literate members!</p>
+                </div>
+                <div class="fun-item">
+                    <div class="fun-icon">☕</div>
+                    <h3>Film & Coffee Socials</h3>
+                    <p>Casual gatherings to discuss recent watches in a relaxed, social setting.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 新闻通讯部分 -->
+    <section class="newsletter">
+        <div class="container">
+            <div class="section-title">
+                <h2>Stay Updated</h2>
+            </div>
+            <p>Be the first to know about our launch events, early registration, and special preview activities.</p>
+            <form class="newsletter-form" id="newsletterForm">
+                <input type="email" placeholder="Enter your email address" required id="newsletterEmail">
+                <button type="submit" class="cta-button">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- 加入我们部分 -->
+    <section class="join" id="join">
+        <div class="container">
+            <div class="section-title">
+                <h2>Join Our Community</h2>
+            </div>
+            <div class="join-content">
+                <p>We're building our founding member list now! Express your interest and we'll contact you with details about our launch events and membership options.</p>
+                
+                <!-- 加载指示器 -->
+                <div class="loading" id="formLoading">
+                    <i class="fas fa-spinner fa-spin"></i> Submitting...
+                </div>
+
+                <!-- 成功消息 -->
+                <div class="success-message" id="successMessage" style="display: none;">
+                    <i class="fas fa-check-circle"></i> Thank you for your interest! We've saved your information.
+                </div>
+
+                <form class="join-form" id="registrationForm">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="major">Major/Year</label>
+                        <input type="text" id="major">
+                    </div>
+                    <div class="form-group">
+                        <label for="interest">Primary Interest</label>
+                        <select id="interest">
+                            <option value="">Select an area</option>
+                            <option value="watching">Film Watching & Discussion</option>
+                            <option value="directing">Directing</option>
+                            <option value="cinematography">Cinematography</option>
+                            <option value="editing">Editing</option>
+                            <option value="screenwriting">Screenwriting</option>
+                            <option value="acting">Acting</option>
+                            <option value="sound">Sound Design</option>
+                            <option value="producing">Producing</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label for="message">What excites you about our movie club?</label>
+                        <textarea id="message"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="cta-button" id="submitBtn">Express Interest</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>CK Movie Club</h3>
+                    <p>Where stories come to life. Launching December 2025.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-tiktok"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#activities">Activities</a></li>
+                        <li><a href="#fun">Fun Activities</a></li>
+                        <li><a href="#join">Join Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Coming Events</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Launch Party - Dec 2025</a></li>
+                        <li><a href="#">Founding Member Registration</a></li>
+                        <li><a href="#">First Screening Schedule</a></li>
+                        <li><a href="#">Workshop Calendar</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-envelope"></i> ckmovieclub@campus.edu</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Student Center 203</li>
+                        <li><i class="fas fa-clock"></i> Launching Dec 2025</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 CK Movie Club. Launching December 2025. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 安全管理配置
+        const ADMIN_CONFIG = {
+            password: 'CKMovieClub2025!', // 您可以更改这个密码
+            sessionKey: 'adminAuthenticated',
+            sessionTimeout: 2 * 60 * 60 * 1000 // 2小时会话超时
+        };
+
+        // 检查管理员登录状态
+        function checkAdminSession() {
+            const session = localStorage.getItem(ADMIN_CONFIG.sessionKey);
+            if (session) {
+                const sessionData = JSON.parse(session);
+                const now = Date.now();
+                
+                // 检查会话是否过期
+                if (now - sessionData.loginTime < ADMIN_CONFIG.sessionTimeout) {
+                    showAdminPanel();
+                    return true;
+                } else {
+                    // 会话过期，清除
+                    localStorage.removeItem(ADMIN_CONFIG.sessionKey);
+                }
+            }
+            return false;
+        }
+
+        // 显示管理员登录框
+        function showAdminLogin() {
+            document.getElementById('adminLoginModal').classList.add('show');
+        }
+
+        // 关闭管理员登录框
+        function closeAdminLogin() {
+            document.getElementById('adminLoginModal').classList.remove('show');
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // 管理员登录
+        function loginAdmin(password) {
+            if (password === ADMIN_CONFIG.password) {
+                // 创建会话
+                const sessionData = {
+                    loginTime: Date.now(),
+                    userAgent: navigator.userAgent
+                };
+                localStorage.setItem(ADMIN_CONFIG.sessionKey, JSON.stringify(sessionData));
+                
+                closeAdminLogin();
+                showAdminPanel();
+                return true;
+            }
+            return false;
+        }
+
+        // 显示管理员面板
+        function showAdminPanel() {
+            document.getElementById('adminPanel').classList.add('show');
+            document.getElementById('adminContent').classList.add('show');
+            updateAdminStats();
+        }
+
+        // 隐藏管理员面板
+        function hideAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('show');
+            document.getElementById('adminContent').classList.remove('show');
+        }
+
+        // 管理员登出
+        function logoutAdmin() {
+            localStorage.removeItem(ADMIN_CONFIG.sessionKey);
+            hideAdminPanel();
+            alert('Admin session ended.');
+        }
+
+        // 切换管理员面板显示
+        function toggleAdminPanel() {
+            document.getElementById('adminContent').classList.toggle('show');
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('dataModal').classList.remove('show');
+        }
+
+        // 管理员登录表单提交
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+            
+            if (loginAdmin(password)) {
+                document.getElementById('loginError').style.display = 'none';
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+
+        // 页面加载时检查管理员会话
+        document.addEventListener('DOMContentLoaded', function() {
+            initDataStorage();
+            checkAdminSession();
+            
+            // 定期检查会话状态（每30分钟）
+            setInterval(checkAdminSession, 30 * 60 * 1000);
+        });
+
+        // 数据存储功能
+        const STORAGE_KEY = 'ckMovieClubSubmissions';
+        const NEWSLETTER_KEY = 'ckMovieClubNewsletter';
+
+        function initDataStorage() {
+            if (!localStorage.getItem(STORAGE_KEY)) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+            }
+            if (!localStorage.getItem(NEWSLETTER_KEY)) {
+                localStorage.setItem(NEWSLETTER_KEY, JSON.stringify([]));
+            }
+            updateAdminStats();
+        }
+
+        function saveFormData(formData) {
+            const submissions = getSubmissions();
+            submissions.push({
+                ...formData,
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                status: 'new'
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
+            updateAdminStats();
+            return true;
+        }
+
+        function saveNewsletterSubscription(email) {
+            const subscriptions = getNewsletterSubscriptions();
+            if (!subscriptions.some(sub => sub.email === email)) {
+                subscriptions.push({
+                    email: email,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem(NEWSLETTER_KEY, JSON.stringify(subscriptions));
+                updateAdminStats();
+                return true;
+            }
+            return false;
+        }
+
+        function getSubmissions() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        }
+
+        function getNewsletterSubscriptions() {
+            return JSON.parse(localStorage.getItem(NEWSLETTER_KEY) || '[]');
+        }
+
+        function updateAdminStats() {
+            // 只有管理员登录时才更新统计信息
+            if (!checkAdminSession()) return;
+            
+            const submissions = getSubmissions();
+            const newsletterSubs = getNewsletterSubscriptions();
+            
+            document.getElementById('totalSubmissions').textContent = 
+                submissions.length + ' members, ' + newsletterSubs.length + ' newsletter subscribers';
+            
+            if (submissions.length > 0) {
+                const latest = new Date(Math.max(...submissions.map(s => new Date(s.timestamp))));
+                document.getElementById('lastUpdate').textContent = latest.toLocaleDateString();
+            }
+        }
+
+        function viewSubmissions() {
+            if (!checkAdminSession()) {
+                alert('Please login as admin first.');
+                return;
+            }
+            
+            const submissions = getSubmissions();
+            const newsletterSubs = getNewsletterSubscriptions();
+            
+            let html = '<h3>Member Registrations (' + submissions.length + ')</h3>';
+            
+            if (submissions.length > 0) {
+                html += '<table class="submissions-table">';
+                html += '<tr><th>Name</th><th>Email</th><th>Interest</th><th>Date</th></tr>';
+                
+                submissions.forEach(sub => {
+                    html += `<tr>
+                        <td>${sub.name || 'N/A'}</td>
+                        <td>${sub.email}</td>
+                        <td>${sub.interest || 'Not specified'}</td>
+                        <td>${new Date(sub.timestamp).toLocaleDateString()}</td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+            } else {
+                html += '<p>No member registrations yet.</p>';
+            }
+            
+            html += '<h3 style="margin-top: 2rem;">Newsletter Subscriptions (' + newsletterSubs.length + ')</h3>';
+            
+            if (newsletterSubs.length > 0) {
+                html += '<table class="submissions-table">';
+                html += '<tr><th>Email</th><th>Date</th></tr>';
+                
+                newsletterSubs.forEach(sub => {
+                    html += `<tr>
+                        <td>${sub.email}</td>
+                        <td>${new Date(sub.timestamp).toLocaleDateString()}</td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+            } else {
+                html += '<p>No newsletter subscriptions yet.</p>';
+            }
+            
+            document.getElementById('modalContent').innerHTML = html;
+            document.getElementById('dataModal').classList.add('show');
+        }
+
+        function exportData() {
+            if (!checkAdminSession()) {
+                alert('Please login as admin first.');
+                return;
+            }
+            
+            const submissions = getSubmissions();
+            const newsletterSubs = getNewsletterSubscriptions();
+            
+            const data = {
+                members: submissions,
+                newsletterSubscribers: newsletterSubs,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'ck-movie-club-data.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearLocalData() {
+            if (!checkAdminSession()) {
+                alert('Please login as admin first.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete all stored data? This cannot be undone.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(NEWSLETTER_KEY);
+                initDataStorage();
+                alert('All data has been cleared.');
+            }
+        }
+
+        // 倒计时到2025年12月
+        function updateCountdown() {
+            const launchDate = new Date('December 1, 2025 00:00:00').getTime();
+            const now = new Date().getTime();
+            const distance = launchDate - now;
+            
+            // 如果倒计时结束
+            if (distance < 0) {
+                clearInterval(countdownTimer);
+                document.getElementById('days').innerHTML = '00';
+                document.getElementById('hours').innerHTML = '00';
+                document.getElementById('minutes').innerHTML = '00';
+                document.getElementById('seconds').innerHTML = '00';
+                
+                // 显示启动消息并隐藏倒计时
+                document.getElementById('launchedMessage').style.display = 'block';
+                document.getElementById('preLaunchBtn').style.display = 'none';
+                document.querySelector('.countdown').style.display = 'none';
+                
+                // 更新横幅文本
+                document.querySelector('.launch-banner p').textContent = 
+                    '🎬 CK Movie Club is Now Live! Join us today! 🎥';
+                
+                return;
+            }
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            document.getElementById('days').innerHTML = days.toString().padStart(2, '0');
+            document.getElementById('hours').innerHTML = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').innerHTML = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').innerHTML = seconds.toString().padStart(2, '0');
+        }
+        
+        const countdownTimer = setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // 活动筛选
+        document.querySelectorAll('.category-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                this.classList.add('active');
+                
+                const category = this.getAttribute('data-category');
+                const cards = document.querySelectorAll('.card');
+                
+                cards.forEach(card => {
+                    if (category === 'all' || card.getAttribute('data-category') === category) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // 导航滚动效果
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // 导航栏背景滚动效果
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.backgroundColor = 'rgba(15, 23, 42, 0.98)';
+            } else {
+                header.style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
+            }
+        });
+
+        // 表单提交处理
+        document.getElementById('newsletterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('newsletterEmail').value;
+            
+            if (saveNewsletterSubscription(email)) {
+                alert('Thanks for subscribing! We\'ll keep you updated on our launch.');
+            } else {
+                alert('This email is already subscribed.');
+            }
+            
+            this.reset();
+        });
+        
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 显示加载
+            document.getElementById('formLoading').classList.add('show');
+            document.getElementById('submitBtn').disabled = true;
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                major: document.getElementById('major').value,
+                interest: document.getElementById('interest').value,
+                message: document.getElementById('message').value
+            };
+            
+            // 模拟API调用延迟
+            setTimeout(() => {
+                if (saveFormData(formData)) {
+                    // 显示成功消息
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('formLoading').classList.remove('show');
+                    
+                    // 重置表单
+                    this.reset();
+                    
+                    // 5秒后隐藏成功消息
+                    setTimeout(() => {
+                        document.getElementById('successMessage').style.display = 'none';
+                    }, 5000);
+                }
+                
+                document.getElementById('submitBtn').disabled = false;
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
